@@ -88,7 +88,7 @@
 		recognition.onsoundstart = console.log;
 		recognition.onspeechstart = () => (listening = true);
 		recognition.onspeechend = () => (listening = false);
-		recognition.onstart = console.log;
+		// recognition.onstart = console.log;
 
 		recognition.start();
 		return () => {
