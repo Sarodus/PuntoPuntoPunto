@@ -134,7 +134,9 @@
 
 <div class="fixed w-full left-0 bottom-0 text-center text-3xl">
 	<div class:!bg-blue-500={listening} class:bg-red-500={!ready} class:bg-green-500={ready}>
-		{text || 'Speak to start...'}
+		{#if permissions}
+			{text || 'Speak to start...'}
+		{/if}
 	</div>
 </div>
 
