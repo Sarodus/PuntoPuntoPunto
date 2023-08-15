@@ -35,9 +35,28 @@
 	onMount(() => {
 		sound = new Audio('/pop.mp3');
 		aborted = false;
-		const abort = listen();
-		return () => abort();
+
+		const abort = init();
+		return () => abort?.();
 	});
+
+	async function init() {
+		try {
+			const stream = await askForMedia();
+			console.log('OK!', stream);
+			return listen();
+		} catch (error) {
+			console.log('...', error);
+		}
+		return () => {};
+	}
+
+	async function askForMedia() {
+		console.log('ask');
+		return new Promise((resolve, reject) => {
+			navigator.mediaDevices.getUserMedia({ audio: true }).then(resolve).catch(reject);
+		});
+	}
 
 	function listen() {
 		console.log('start...');
@@ -61,7 +80,7 @@
 
 		recognition.onend = () => !aborted && listen();
 		recognition.onaudiostart = () => (ready = true);
-		recognition.onerror = console.log;
+		recognition.onerror = (e) => console.log('onerror', e);
 		recognition.onaudioend = console.log;
 		recognition.onnomatch = console.log;
 		recognition.onsoundend = console.log;
