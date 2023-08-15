@@ -76,7 +76,10 @@
 			processText(text);
 		};
 
-		recognition.onend = () => !aborted && listen();
+		recognition.onend = (e) => {
+			console.log(e);
+			!aborted && listen();
+		};
 		recognition.onaudiostart = () => (ready = true);
 		recognition.onerror = (e) => console.log('onerror', e);
 		recognition.onaudioend = console.log;
