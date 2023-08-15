@@ -1,6 +1,5 @@
 <script lang="ts">
 	import Listen from '$lib/Listen.svelte';
-	import { onMount } from 'svelte';
 
 	const words = ['punto', 'siguiente', 'next', 'otro', '.'];
 	const language = 'es-ES'; // en-US
@@ -11,7 +10,7 @@
 		REDUCTION = 'REDUCTION'
 	}
 
-	let sound: HTMLAudioElement;
+	let audioEl: HTMLAudioElement;
 	let stepIndex = 0;
 	let steps = [
 		StichType.SINGLE,
@@ -27,16 +26,12 @@
 		{ index: stepIndex + 1, step: steps[stepIndex + 1] }
 	];
 
-	onMount(() => {
-		sound = new Audio('/pop.mp3');
-	});
-
 	function processText(text: string) {
 		const found = words.some(
 			(word) => word.toLocaleLowerCase().includes(text) || text.toLowerCase().includes(word)
 		);
 		if (found) {
-			sound.play();
+			audioEl?.play();
 			stepIndex = stepIndex + 1;
 		}
 	}
@@ -67,6 +62,8 @@
 		</div>
 	{/each}
 </div>
+
+<audio bind:this={audioEl} preload="auto" src="/pop.mp3" />
 
 <Listen {words} {language} on:text={(e) => processText(e.detail)} />
 
