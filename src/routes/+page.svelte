@@ -16,6 +16,7 @@
 	let ready = false;
 	let text = '';
 	let aborted = false;
+	let permissions = false;
 
 	let stepIndex = 0;
 	let steps = [
@@ -35,15 +36,12 @@
 	onMount(() => {
 		sound = new Audio('/pop.mp3');
 		aborted = false;
-
-		const abort = init();
-		return () => abort?.();
 	});
 
-	async function init() {
+	async function start() {
 		try {
-			const stream = await askForMedia();
-			console.log('OK!', stream);
+			await askForMedia();
+			permissions = true;
 			return listen();
 		} catch (error) {
 			console.log('...', error);
@@ -139,6 +137,14 @@
 		{text || 'Speak to start...'}
 	</div>
 </div>
+
+{#if !permissions}
+	<div class="fixed bottom-0 flex w-full mb-16 justify-center items-center">
+		<button class="w-20" on:click={start}>
+			<img class="w-full" alt="start lo listen" src="/microphone.svg" />
+		</button>
+	</div>
+{/if}
 
 <style>
 	.step {
