@@ -1,9 +1,9 @@
 <script lang="ts">
+	import Listen from '$lib/Listen.svelte';
 	import { onMount } from 'svelte';
 
+	const words = ['punto', 'siguiente', 'next', 'otro', '.'];
 	const language = 'es-ES'; // en-US
-	const words = ['punto', 'siguiente', 'next', 'otro'];
-	const grammar = `#JSGF V1.0; grammar words; public <word> =  ${words.join(' | ')};`;
 
 	enum StichType {
 		SINGLE = 'SINGLE',
@@ -12,12 +12,6 @@
 	}
 
 	let sound: HTMLAudioElement;
-	let listening = false;
-	let ready = false;
-	let text = '';
-	let aborted = false;
-	let permissions = false;
-
 	let stepIndex = 0;
 	let steps = [
 		StichType.SINGLE,
@@ -35,73 +29,12 @@
 
 	onMount(() => {
 		sound = new Audio('/pop.mp3');
-		aborted = false;
 	});
-
-	async function start() {
-		try {
-			await askForMedia();
-			permissions = true;
-			return listen();
-		} catch (error) {
-			console.log('...', error);
-		}
-		return () => {};
-	}
-
-	async function askForMedia() {
-		console.log('ask');
-		return new Promise((resolve, reject) => {
-			navigator.mediaDevices.getUserMedia({ audio: true }).then(resolve).catch(reject);
-		});
-	}
-
-	function listen() {
-		console.log('start...');
-		const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-		const SpeechGrammarList = window.SpeechGrammarList || window.webkitSpeechGrammarList;
-
-		const recognition = new SpeechRecognition();
-		const speechRecognitionList = new SpeechGrammarList();
-		speechRecognitionList.addFromString(grammar, 1);
-		recognition.grammars = speechRecognitionList;
-		recognition.continuous = false;
-		recognition.lang = language;
-		recognition.maxAlternatives;
-
-		recognition.onresult = (event) => {
-			console.log(event);
-			text = event.results[event.results.length - 1][0].transcript;
-			ready = false;
-			processText(text);
-		};
-
-		recognition.onend = (e) => {
-			console.log(e);
-			!aborted && listen();
-		};
-		recognition.onaudiostart = () => (ready = true);
-		recognition.onerror = (e) => console.log('onerror', e);
-		recognition.onaudioend = console.log;
-		recognition.onnomatch = console.log;
-		recognition.onsoundend = console.log;
-		recognition.onsoundstart = console.log;
-		recognition.onspeechstart = () => (listening = true);
-		recognition.onspeechend = () => (listening = false);
-		// recognition.onstart = console.log;
-
-		recognition.start();
-		return () => {
-			aborted = true;
-			recognition.abort();
-		};
-	}
 
 	function processText(text: string) {
 		const found = words.some(
 			(word) => word.toLocaleLowerCase().includes(text) || text.toLowerCase().includes(word)
 		);
-		console.log(text, '??', found);
 		if (found) {
 			sound.play();
 			stepIndex = stepIndex + 1;
@@ -135,21 +68,7 @@
 	{/each}
 </div>
 
-<div class="fixed w-full left-0 bottom-0 text-center text-3xl">
-	<div class:!bg-blue-500={listening} class:bg-red-500={!ready} class:bg-green-500={ready}>
-		{#if permissions}
-			{text || 'Speak to start...'}
-		{/if}
-	</div>
-</div>
-
-{#if !permissions}
-	<div class="fixed bottom-0 flex w-full mb-16 justify-center items-center">
-		<button class="w-20" on:click={start}>
-			<img class="w-full" alt="start lo listen" src="/microphone.svg" />
-		</button>
-	</div>
-{/if}
+<Listen {words} {language} on:text={(e) => processText(e.detail)} />
 
 <style>
 	.step {
